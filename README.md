@@ -1,9 +1,7 @@
 # Trace
 
-> **Independent publication candidate, not yet published.** Planned npm identity:
-> `@durable-systems/trace@0.1.0`; GitHub: `jameelsalami/trace`.
-> Namespace authorization and upstream source-rights clearance remain pending.
-> `private: true` deliberately prevents accidental publication.
+> Public npm package: `@durable-systems/trace@0.1.0`.
+> GitHub: [JameelSalami/trace](https://github.com/JameelSalami/trace).
 
 
 Trace is a stateless, domain-neutral substrate for portable causal evidence.
@@ -62,7 +60,7 @@ It never owns storage, advances a pointer, or retains state. State Runtime is a 
 Trace's semantic authority.
 ## Installation and standalone packaging
 
-After authorized npm publication:
+Install from npm:
 
 ```sh
 npm install @durable-systems/trace@0.1.0 effect@3.22.2
@@ -90,27 +88,17 @@ Trace declares its development dependency as the **exact registry version
 `@durable-systems/state@0.1.0`** in `package.json`, with an optional
 `0.1.0` peer for the `/state` adapter.
 
-**Prepublication lockfile bootstrap:** State is not yet available from npm.
-To let all four GitHub repositories be pushed together and verified from
-independent checkouts, `package-lock.json` temporarily resolves this version
-to the integrity-pinned `vendor/durable-systems-state-0.1.0.tgz`. The archive
-is source-only and excluded from Trace's distribution. `npm ci` therefore
-succeeds without State's source checkout or registry publication; this is
-**not** evidence of downloading State from the npm registry.
+The checked-in lockfile resolves `@durable-systems/state@0.1.0` directly
+from the **public npm registry**, with the registry package's SHA-512
+integrity. No local bootstrap archive is required. Source CI runs
+`npm ci` using that exact version. The optional `/state` adapter consumer
+also installs the published State package; core-only consumers do not
+need State.
 
-After State `0.1.0` is actually published, regenerate the lockfile against
-the published registry version, remove the vendor archive and re-run all
-independent builds, CI and consumer tests. GitHub repositories can be pushed
-together; npm release order still matters. `npm run verify:install` exercises
-core-only imports without State and the State adapter with State installed,
-including ESM and TypeScript declarations.
-
-The release archive ships compiled JS, public `.d.ts` declarations, README,
-LICENSE and metadata only. No local vendor tarball, source tests, Git history
-or private files are shipped. Both `private: true` and the release permission
-gate remain in effect. Apache-2.0 terms are provisionally staged in
-[LICENSE](LICENSE); confirm original copyright/provenance and inherited
-NOTICE obligations before public distribution.
+The release archive ships compiled JS, public `.d.ts` declarations,
+README, LICENSE and metadata only. No vendor archive, source tests,
+Git history or private files are distributed. See [LICENSE](LICENSE)
+for Apache-2.0 terms and observe applicable attribution obligations.
 
 ## JavaScript runtime portability
 
@@ -203,9 +191,9 @@ of copied implementation, wire interoperability or endorsement:
 Trace depends on separately installed `@noble/hashes@2.4.0` (MIT); it
 declares `effect@3.22.2` (MIT) as a peer and
 `@durable-systems/state@0.1.0` (Apache-2.0) as an **optional peer**.
-The source-only State development bootstrap tarball is **excluded from
-Trace's npm tarball**. Citations record intellectual context, not the
-source's copyright ownership or satisfaction of any inherited notices.
+The installed State peer is provided separately by npm; no State source
+is bundled into Trace. Citations record intellectual context, not
+an independent certification of underlying copyright or NOTICE obligations.
 
 ## Scoped State verification and actual replay exercise
 

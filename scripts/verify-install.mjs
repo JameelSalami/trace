@@ -12,20 +12,21 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const name = "@durable-systems/trace";
 const stateName = "@durable-systems/state";
 const info = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
-if (info.name !== name || info.private !== true || info.version !== "0.1.0") {
+if (info.name !== name || info.private === true || info.version !== "0.1.0") {
   throw Error("unexpected Trace source identity or safety flag");
 }
 const lock = JSON.parse(readFileSync(join(root, "package-lock.json"), "utf8"));
-const bootstrap = "file:vendor/durable-systems-state-0.1.0.tgz";
-const archive = join(root, "vendor", "durable-systems-state-0.1.0.tgz");
-const integrity = "sha512-" + createHash("sha512").update(readFileSync(archive)).digest("base64");
+const installedState = lock.packages?.["node_modules/" + stateName];
+const resolvedState = installedState?.resolved;
+const integrity = installedState?.integrity;
 if (info.devDependencies?.[stateName] !== "0.1.0" ||
     info.peerDependencies?.[stateName] !== "0.1.0" ||
     info.peerDependenciesMeta?.[stateName]?.optional !== true ||
     lock.packages?.[""]?.devDependencies?.[stateName] !== "0.1.0" ||
-    lock.packages?.["node_modules/" + stateName]?.resolved !== bootstrap ||
-    lock.packages?.["node_modules/" + stateName]?.integrity !== integrity) {
-  throw Error("registry devDependency and offline release bootstrap lockfile are inconsistent");
+    typeof resolvedState !== "string" ||
+    !resolvedState.startsWith("https://registry.npmjs.org/@durable-systems/state/-/") ||
+    typeof integrity !== "string" || !/^sha512-[A-Za-z0-9+/=]+$/.test(integrity)) {
+  throw Error("State dependency must resolve to integrity-pinned public npm registry package");
 }
 const tmp = mkdtempSync(join(tmpdir(), "trace-independent-consumer-"));
 let done = false;
@@ -170,12 +171,10 @@ try {
   typecheck(core);
   console.log("PASS: Trace core-only ESM and .d.ts resolution without optional State");
 
-  const stateTar = join(root, "vendor", "durable-systems-state-0.1.0.tgz");
-  const statePackage = assertArchive(stateTar, "State development tarball");
-  if (statePackage.pkg.name !== stateName) throw Error("invalid vendored State identity");
+  const stateRegistrySpec = "@durable-systems/state@0.1.0";
   const combined = setupConsumer("state-adapter");
   execute("npm", ["install", "--ignore-scripts", "--no-audit", "--no-fund", "--save-exact",
-    stateTar, tarball, "effect@3.22.2", "typescript@5.9.3", "@types/node@22.20.4"], combined);
+    stateRegistrySpec, tarball, "effect@3.22.2", "typescript@5.9.3", "@types/node@22.20.4"], combined);
   checkInstalled(combined, stateName);
   checkInstalled(combined, name);
   execute("npm", ["ls", "--all", "--depth=0"], combined);

@@ -206,3 +206,29 @@ declares `effect@3.22.2` (MIT) as a peer and
 The source-only State development bootstrap tarball is **excluded from
 Trace's npm tarball**. Citations record intellectual context, not the
 source's copyright ownership or satisfaction of any inherited notices.
+
+## Scoped State verification and actual replay exercise
+
+The original `readStateRuntimeTraceSnapshot(store, ids)` continues
+to verify the complete StateMap history. To avoid repeating O(history)
+verification during every hot-path snapshot, opt in to:
+
+```ts
+const hot = await readStateRuntimeTraceSnapshotScoped(store, ["receipt"], "current");
+```
+
+The result carries `schema: "tracepack.state-runtime-snapshot/v2"` and
+`verificationScope: "current"`. This checks the captured current StateMap
+and all its current records, **not any earlier history**. Schedule separate
+full-history verification for archival assurance. The `"history"` mode still
+checks all reachable maps. No unverifiable shortcut is silently enabled.
+
+`compileReplay` remains a **classification plan**, without execution.
+For actual opt-in re-evaluation, `exerciseTraceReplay(envelope, runner)`
+walks the verified causal DAG and calls a consumer-owned evaluator on
+inputs, fixtures, and derived nodes, comparing optional expected output
+digests. It never evaluates `excluded` nodes or reuses historical
+authority. The result is labeled `verification: "not-attested"`:
+a digest match is not proof of independent evidence, and a JavaScript
+callback can have ambient side effects unless the **host isolates it**.
+Trace has no authority to execute external actions or deploy changes.

@@ -95,3 +95,6 @@ export const readStateRuntimeTraceSnapshot = async (
     sourceDigests
   };
 };
+
+export { readStateRuntimeTraceSnapshotScoped } from "./scoped-state.js";
+export type { ScopedStateRuntimeTraceSnapshot } from "./scoped-state.js";

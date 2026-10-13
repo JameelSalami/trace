@@ -217,3 +217,56 @@ test("tampered envelope fails content verification", () => {
   };
   assert.throws(() => verifyTraceEnvelope(tampered), /content digest mismatch/);
 });
+
+
+test("invalid top-level authority is refused", () => {
+  assert.throws(
+    () => packTrace({ ...base(), authority: "run-effects" as never }),
+    /never grant authority/
+  );
+});
+
+test("duplicate causal node identities are rejected", () => {
+  const value = base();
+  assert.throws(
+    () => packTrace({ ...value, nodes: [...value.nodes, { ...value.nodes[0]! }] }),
+    /node ids must be unique/
+  );
+});
+
+test("historical authority epoch cannot become executable", () => {
+  const value = base();
+  assert.throws(
+    () => packTrace({ ...value,
+      authorityEpochs: value.authorityEpochs.map(epoch => ({ ...epoch, replayable: true as never }))
+    }),
+    /never replayable/
+  );
+});
+
+test("observed closure requires at least one concrete evidence node", () => {
+  assert.throws(
+    () => packTrace({ ...base(), closure: { kind: "observed", evidenceNodeIds: [] } }),
+    /requires verified consequence-establishing evidence/
+  );
+});
+
+test("duplicate redaction identity is rejected rather than deduplicated", () => {
+  const item = {
+    id: "redact:one", originalDigest: digest("sensitive"),
+    classification: "private", reason: "data minimization", semanticRole: "source"
+  };
+  assert.throws(
+    () => packTrace({ ...base(), redactions: [item, { ...item }] }),
+    /Redaction ids must be unique/
+  );
+});
+
+test("replay plan preserves excluded-node identities exactly", () => {
+  const original = base();
+  const redacted = { ...original.nodes[0]!, id: "redacted-secret", replay: "excluded" as const };
+  const envelope = packTrace({ ...original, nodes: [...original.nodes, redacted] });
+  const replay = compileReplay(envelope);
+  assert.deepEqual(replay.excludedNodeIds, ["redacted-secret"]);
+  assert.equal(replay.effectReplay, false);
+});

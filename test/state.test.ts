@@ -130,3 +130,17 @@ test("TracePack binds selected facts to one captured immutable StateMap under co
     1
   );
 });
+
+
+test("TracePack State Runtime adapter rejects duplicate or empty selection before opening state", async () => {
+  const store = await Effect.runPromise(makeMemoryStateStore("trace-source"));
+  await assert.rejects(
+    () => readStateRuntimeTraceSnapshot(store, ["missing", "missing"]),
+    /unique non-empty record ids/
+  );
+  await assert.rejects(
+    () => readStateRuntimeTraceSnapshot(store, [""]),
+    /unique non-empty record ids/
+  );
+  await Effect.runPromise(store.close);
+});

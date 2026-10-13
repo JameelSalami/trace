@@ -1,0 +1,69 @@
+{
+  "name": "@durable-systems/trace",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20.19.0",
+    "npm": ">=10"
+  },
+  "scripts": {
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "build": "npm run clean && tsc -p tsconfig.json",
+    "test": "npm run build && node --test dist/test/*.test.js",
+    "verify": "npm run check && npm test",
+    "prepack": "npm run verify",
+    "verify:install": "node scripts/verify-install.mjs"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/index.js"
+    },
+    "./state": {
+      "types": "./dist/src/state.d.ts",
+      "import": "./dist/src/state.js"
+    },
+    "./core": {
+      "types": "./dist/src/core.d.ts",
+      "import": "./dist/src/core.js"
+    }
+  },
+  "files": [
+    "dist/src",
+    "README.md",
+    "LICENSE"
+  ],
+  "devDependencies": {
+    "@types/node": "22.20.4",
+    "effect": "3.22.2",
+    "@durable-systems/state": "0.1.0",
+    "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "@noble/hashes": "2.4.0"
+  },
+  "description": "Domain-neutral stateless causal evidence and replay",
+  "peerDependencies": {
+    "effect": "3.22.2",
+    "@durable-systems/state": "0.1.0"
+  },
+  "peerDependenciesMeta": {
+    "@durable-systems/state": {
+      "optional": true
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jameelsalami/trace.git"
+  },
+  "homepage": "https://github.com/jameelsalami/trace#readme",
+  "bugs": {
+    "url": "https://github.com/jameelsalami/trace/issues"
+  },
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  }
+}

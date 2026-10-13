@@ -232,3 +232,20 @@ authority. The result is labeled `verification: "not-attested"`:
 a digest match is not proof of independent evidence, and a JavaScript
 callback can have ambient side effects unless the **host isolates it**.
 Trace has no authority to execute external actions or deploy changes.
+
+## Runtime JSON validation and content identity
+
+Trace's canonical JSON writer now **rejects non-JSON runtime values**,
+including `Date`, `Map`, `Set`, class instances, `undefined`,
+`NaN`/`Infinity`, sparse arrays, cycles and non-data object properties.
+It cannot turn a `Date` into `{}` and accidentally treat it as a matching
+replay result. This is checked when generating trace digests and when
+comparing replay outputs, including outputs supplied by JavaScript callers
+that bypass TypeScript's `JsonValue` type.
+
+Callers must explicitly convert semantic types into plain JSON before
+hashing—for example, serialize a date as an ISO-8601 string or a typed
+`{ type: "timestamp", iso: "..." }` record. Hashes of **valid plain JSON**
+retain their v1 canonical encoding; only previously silently misencoded
+non-JSON values are newly rejected. Invalid replay results fail closed
+rather than counting as expected digest matches.
